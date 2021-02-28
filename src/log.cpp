@@ -1,7 +1,7 @@
 #include "log.hpp"
 
 #include <map>
-#include<functional>
+#include <functional>
 
 namespace relar
 {
@@ -29,6 +29,7 @@ namespace relar
     class MessageFormatItem : public LogFormatter::FormatItem
     {
     public:
+        MessageFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getContent();
@@ -37,6 +38,7 @@ namespace relar
     class LevelFormatItem : public LogFormatter::FormatItem
     {
     public:
+        LevelFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << LogLevel::ToString(level);
@@ -46,6 +48,7 @@ namespace relar
     class ElapseFormatItem : public LogFormatter::FormatItem
     {
     public:
+        ElapseFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getElapse();
@@ -55,6 +58,7 @@ namespace relar
     class NameFormatItem : public LogFormatter::FormatItem
     {
     public:
+        NameFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << logger->getName();
@@ -64,6 +68,7 @@ namespace relar
     class ThreadIdFormatItem : public LogFormatter::FormatItem
     {
     public:
+        ThreadIdFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getThreadId();
@@ -73,6 +78,7 @@ namespace relar
     class FiberIdFormatItem : public LogFormatter::FormatItem
     {
     public:
+        FiberIdFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getFiberId();
@@ -89,13 +95,15 @@ namespace relar
         {
             os << event->getTime();
         }
-        private:
+
+    private:
         std::string m_format;
     };
 
     class FilenameFormatItem : public LogFormatter::FormatItem
     {
     public:
+        FilenameFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getFile();
@@ -105,6 +113,7 @@ namespace relar
     class LineFormatItem : public LogFormatter::FormatItem
     {
     public:
+        LineFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << event->getLine();
@@ -114,6 +123,7 @@ namespace relar
     class NewLineFormatItem : public LogFormatter::FormatItem
     {
     public:
+        NewLineFormatItem(const std::string &str = "") {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << std::endl;
@@ -123,12 +133,13 @@ namespace relar
     class StringFormatItem : public LogFormatter::FormatItem
     {
     public:
-    StringFormatItem(const std::string str) : FormatItem(str), m_string(str){}
+        StringFormatItem(const std::string str) : FormatItem(str), m_string(str) {}
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
             os << m_string;
         }
-        private:
+
+    private:
         std::string m_string;
     };
 
@@ -145,6 +156,9 @@ namespace relar
     }
     void Logger::addAppender(LogAppender::ptr appender)
     {
+        if(!appender->getFormatter()){
+            appender->setFormatter(m_formatter);
+        }
         m_appenders.push_back(appender);
     }
     void Logger::delAppender(LogAppender::ptr appender)
@@ -238,7 +252,6 @@ namespace relar
         // str, format, type
         std::vector<std::tuple<std::string, std::string, int>> vec;
         std::string nstr;
-        size_t last_pos = 0;
         for (size_t i = 0; i < m_pattern.size(); ++i)
         {
             if (m_pattern[i] != '%')
@@ -293,7 +306,7 @@ namespace relar
             {
                 if (!nstr.empty())
                 {
-                    vec.push_back(std::make_tuple(nstr, "", 0));
+                    vec.push_back(std::make_tuple(nstr, std::string(), 0));
                 }
 
                 str = m_pattern.substr(i + 1, n - i - 1);
@@ -317,9 +330,11 @@ namespace relar
             vec.push_back(std::make_tuple(nstr, "", 0));
         }
 
-        static std::map<std::string, std::function<FormatItem::ptr(const std::string& str)>> s_format_items = {
-            #define XX(str, C) \
-            {#str, [](const std::string& fmt) { return FormatItem::ptr(new C(fmt}); }
+        static std::map<std::string, std::function<FormatItem::ptr(const std::string &str)>> s_format_items = {
+#define XX(str, C)                                                               \
+    {                                                                            \
+#str, [](const std::string &fmt) { return FormatItem::ptr(new C(fmt)); } \
+    }
 
             XX(m, MessageFormatItem),
             XX(p, LevelFormatItem),
@@ -330,17 +345,24 @@ namespace relar
             XX(d, DateTimeFormatItem),
             XX(f, FilenameFormatItem),
             XX(l, LineFormatItem),
-            #undef XX
+#undef XX
         };
 
-        for(auto& i : vec){
-            if(std::get<2>(i) == 0){
+        for (auto &i : vec)
+        {
+            if (std::get<2>(i) == 0)
+            {
                 m_items.push_back(FormatItem::ptr(new StringFormatItem(std::get<0>(i))));
-            }else{
+            }
+            else
+            {
                 auto it = s_format_items.find(std::get<0>(i));
-                if(it == s_format_items.end()){
+                if (it == s_format_items.end())
+                {
                     m_items.push_back(FormatItem::ptr(new StringFormatItem("<<error_format %" + std::get<0>(i) + ">>")));
-                }else{
+                }
+                else
+                {
                     m_items.push_back(it->second(std::get<1>(i)));
                 }
             }
