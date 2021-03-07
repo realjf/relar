@@ -162,7 +162,7 @@ namespace relar
 
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
-        m_formatter.reset(new LogFormatter("%d {%p} %l %m %n"));
+        m_formatter.reset(new LogFormatter("%d [%p] %l %m %n"));
     }
 
     LogEvent::LogEvent(const char* file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time) :
@@ -297,29 +297,36 @@ namespace relar
             {
                 if (!isalpha(m_pattern[n]) && m_pattern[n] != '{' && m_pattern[n] != '}')
                 {
+                    str = m_pattern.substr(i+1, n-i-1);
                     break;
                 }
                 if (fmt_status == 0)
                 {
                     if (m_pattern[n] == '{')
                     {
-                        str = m_pattern.substr(i + 1, n - i);
+                        str = m_pattern.substr(i + 1, n - i - 1);
                         fmt_status = 1; // 解析格式
-                        ++n;
                         fmt_begin = n;
+                        ++n;
                         continue;
                     }
-                }
-                if (fmt_status == 1)
+                }else if (fmt_status == 1)
                 {
                     if (m_pattern[n] == '}')
                     {
                         fmt = m_pattern.substr(fmt_begin + 1, n - fmt_begin - 1);
-                        fmt_status = 2;
+                        std::cout << "#" << fmt << std::endl;
+                        fmt_status = 0;
+                        ++n;
                         break;
                     }
                 }
                 ++n;
+                if(n == m_pattern.size()) {
+                    if(str.empty()){
+                        str = m_pattern.substr(i + 1);
+                    }
+                }
             }
 
             if (fmt_status == 0)
@@ -330,25 +337,24 @@ namespace relar
                     nstr.clear();
                 }
 
-                str = m_pattern.substr(i + 1, n - i - 1);
                 vec.push_back(std::make_tuple(str, fmt, 1));
-                i = n;
+                i = n - 1;
             }
             else if (fmt_status == 1)
             {
                 std::cout << "pattern parse error: " << m_pattern << " - " << m_pattern.substr(i) << std::endl;
                 vec.push_back(std::make_tuple("<<pattern_error>>", fmt, 0));
             }
-            else if (fmt_status == 2)
-            {
-                if (!nstr.empty())
-                {
-                    vec.push_back(std::make_tuple(nstr, "", 0));
-                    nstr.clear();
-                }
-                vec.push_back(std::make_tuple(str, fmt, 1));
-                i = n;
-            }
+            // else if (fmt_status == 2)
+            // {
+            //     if (!nstr.empty())
+            //     {
+            //         vec.push_back(std::make_tuple(nstr, "", 0));
+            //         nstr.clear();
+            //     }
+            //     vec.push_back(std::make_tuple(str, fmt, 1));
+            //     i = n;
+            // }
         }
 
         if (!nstr.empty())
