@@ -151,12 +151,21 @@ namespace relar
     uint64_t m_time;              // 时间戳
     std::string m_content;
 
-    Logger::Logger(const std::string &name) : m_name(name)
+    Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
+        m_formatter.reset(new LogFormatter("%d {%p} %l %m %n"));
+    }
+
+    LogEvent::LogEvent(const char* file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time) :
+    m_file(file), m_line(line), m_elapse(elapse), m_threadId(thread_id),m_fiberId(fiber_id),
+    m_time(time)
+    {
+
     }
     void Logger::addAppender(LogAppender::ptr appender)
     {
-        if(!appender->getFormatter()){
+        if (!appender->getFormatter())
+        {
             appender->setFormatter(m_formatter);
         }
         m_appenders.push_back(appender);
@@ -211,7 +220,7 @@ namespace relar
     {
         if (level >= m_level)
         {
-            m_filestream << m_formatter.format(logger, level, event);
+            m_filestream << m_formatter->format(logger, level, event);
         }
     }
 
@@ -228,12 +237,13 @@ namespace relar
     {
         if (level >= m_level)
         {
-            std::cout << m_formatter.format(logger, level, event);
+            std::cout << m_formatter->format(logger, level, event);
         }
     }
 
     LogFormatter::LogFormatter(const std::string &pattern) : m_pattern(pattern)
     {
+        init();
     }
 
     std::string LogFormatter::format(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event)
@@ -276,7 +286,7 @@ namespace relar
             std::string fmt;
             while (n < m_pattern.size())
             {
-                if (isspace(m_pattern[n]))
+                if (!isalpha(m_pattern[n]) && m_pattern[n] != '{' && m_pattern[n] != '}')
                 {
                     break;
                 }
@@ -296,10 +306,12 @@ namespace relar
                     if (m_pattern[n] == '}')
                     {
                         fmt = m_pattern.substr(fmt_begin + 1, n - fmt_begin - 1);
+                        std::cout << fmt << std::endl;
                         fmt_status = 2;
                         break;
                     }
                 }
+                ++n;
             }
 
             if (fmt_status == 0)
@@ -307,6 +319,7 @@ namespace relar
                 if (!nstr.empty())
                 {
                     vec.push_back(std::make_tuple(nstr, std::string(), 0));
+                    nstr.clear();
                 }
 
                 str = m_pattern.substr(i + 1, n - i - 1);
@@ -320,6 +333,11 @@ namespace relar
             }
             else if (fmt_status == 2)
             {
+                if (!nstr.empty())
+                {
+                    vec.push_back(std::make_tuple(nstr, "", 0));
+                    nstr.clear();
+                }
                 vec.push_back(std::make_tuple(str, fmt, 1));
                 i = n;
             }
@@ -367,8 +385,10 @@ namespace relar
                 }
             }
 
-            std::cout << std::get<0>(i) << " - " << std::get<1>(i) << " - " << std::get<2>(i) << std::endl;
+            std::cout << "{" << std::get<0>(i) << "} - {" << std::get<1>(i) << "} - {" << std::get<2>(i) << "}" << std::endl;
         }
+
+
         // %m -- 消息体
         // %p -- level
         // %r -- 启动后的时间
