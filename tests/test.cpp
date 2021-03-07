@@ -6,7 +6,6 @@ int main(int argc, char** argv){
     logger->addAppender(relar::LogAppender::ptr(new relar::StdoutLogAppender));
 
     relar::LogEvent::ptr event(new relar::LogEvent(__FILE__,__LINE__,0, 1, 2, time(0)));
-    event->getSS() << "hello relar log";
 
     logger->log(relar::LogLevel::DEBUG, event);
     std::cout << "hello relar log" << std::endl;
