@@ -93,7 +93,13 @@ namespace relar
         }
         void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
         {
-            os << event->getTime();
+            struct tm tm;
+            time_t time = event->getTime();
+            localtime_r(&time, &tm);
+            char buf[64];
+            strptime(buf, m_format.c_str(), &tm);
+            os << buf;
+            // os << event->getTime();
         }
 
     private:
