@@ -88,7 +88,7 @@ namespace relar
     class DateTimeFormatItem : public LogFormatter::FormatItem
     {
     public:
-        DateTimeFormatItem(const std::string &format = "%Y:%m:%d %H:%M:%S") : m_format(format)
+        DateTimeFormatItem(const std::string &format = "%Y-%m-%d %H:%M:%S") : m_format(format)
         {
             if(m_format.empty()){
                 m_format = "%Y-%m-%d %H:%M:%S";
@@ -152,6 +152,19 @@ namespace relar
         std::string m_string;
     };
 
+    class TabFormatItem : public LogFormatter::FormatItem
+    {
+    public:
+        TabFormatItem(const std::string& str = "") {}
+        void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) override
+        {
+            os << "\t";
+        }
+
+    private:
+        std::string m_string;
+    };
+
     const char *m_file = nullptr; // 文件名
     int32_t m_line = 0;           // 行号
     uint32_t m_elapse = 0;        // 程序启动开始到现在的毫秒数
@@ -162,7 +175,7 @@ namespace relar
 
     Logger::Logger(const std::string &name) : m_name(name), m_level(LogLevel::DEBUG)
     {
-        m_formatter.reset(new LogFormatter("%d [%p] %l %m %n"));
+        m_formatter.reset(new LogFormatter("%d{%Y-%m-%d %H:%M:%S}%T[%p]%T%f:%l%T%m%n"));
     }
 
     LogEvent::LogEvent(const char* file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time) :
@@ -377,6 +390,8 @@ namespace relar
             XX(d, DateTimeFormatItem),
             XX(f, FilenameFormatItem),
             XX(l, LineFormatItem),
+            XX(T, TabFormatItem),
+            XX(F, FiberIdFormatItem),
 #undef XX
         };
 
