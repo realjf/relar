@@ -1,7 +1,6 @@
 #ifndef __RELAR_LOG_HPP__
 #define __RELAR_LOG_HPP__
 
-
 #include <stdint.h>
 #include <memory>
 #include <list>
@@ -11,11 +10,13 @@
 #include <sstream>
 #include <string>
 #include <stdarg.h>
+#include <map>
 
-#define RELAR_LOG_LEVEL(logger, level) \
-    if(logger->getLevel() <= level) \
-        relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
-        relar::GetFiberId(), time(0))}).getSS()
+#define RELAR_LOG_LEVEL(logger, level)                                                                                       \
+    if (logger->getLevel() <= level)                                                                                         \
+    relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
+                                                                 relar::GetFiberId(), time(0))})                             \
+        .getSS()
 
 #define RELAR_LOG_DEBUG(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::DEBUG)
 #define RELAR_LOG_INFO(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::INFO)
@@ -23,17 +24,18 @@
 #define RELAR_LOG_ERROR(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::ERROR)
 #define RELAR_LOG_FATAL(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::FATAL)
 
-#define RELAR_LOG_FMT_LEVEL(logger, level, fmt, ...) \
-    if(logger->getLevel() <= level) \
-        relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
-        relar::GetFiberId(), time(0))}).getEvent()->format(fmt, __VA_ARGS__)
+#define RELAR_LOG_FMT_LEVEL(logger, level, fmt, ...)                                                                         \
+    if (logger->getLevel() <= level)                                                                                         \
+    relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
+                                                                 relar::GetFiberId(), time(0))})                             \
+        .getEvent()                                                                                                          \
+        ->format(fmt, __VA_ARGS__)
 
 #define RELAR_LOG_FMT_DEBUG(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::DEBUG, fmt, __VA_ARGS__)
 #define RELAR_LOG_FMT_INFO(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::INFO, fmt, __VA_ARGS__)
 #define RELAR_LOG_FMT_WARN(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::WARN, fmt, __VA_ARGS__)
 #define RELAR_LOG_FMT_ERROR(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::ERROR, fmt, __VA_ARGS__)
 #define RELAR_LOG_FMT_FATAL(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::FATAL, fmt, __VA_ARGS__)
-
 
 namespace relar
 {
@@ -52,15 +54,15 @@ namespace relar
             ERROR = 4,
             FATAL = 5
         };
-        static const char* ToString(LogLevel::Level level);
+        static const char *ToString(LogLevel::Level level);
     };
     class LogEvent
     {
     public:
         typedef std::shared_ptr<LogEvent> ptr;
-        LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level, const char* file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time);
+        LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level, const char *file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time);
 
-        const char* getFile() const { return m_file; }
+        const char *getFile() const { return m_file; }
         int32_t getLine() const { return m_line; }
         uint32_t getElapse() const { return m_elapse; }
         uint32_t getThreadId() const { return m_threadId; }
@@ -70,9 +72,10 @@ namespace relar
         std::shared_ptr<Logger> getLogger() const { return m_logger; }
         LogLevel::Level getLevel() const { return m_level; }
 
-        std::stringstream& getSS() { return m_ss; }
-        void format(const char* fmt, ...);
-        void format(const char* fmt, va_list al);
+        std::stringstream &getSS() { return m_ss; }
+        void format(const char *fmt, ...);
+        void format(const char *fmt, va_list al);
+
     private:
         const char *m_file = nullptr; // 文件名
         int32_t m_line = 0;           // 行号
@@ -87,18 +90,18 @@ namespace relar
         LogLevel::Level m_level;
     };
 
-    class LogEventWrap {
-        public:
+    class LogEventWrap
+    {
+    public:
         LogEventWrap(LogEvent::ptr e);
         ~LogEventWrap();
-        std::stringstream& getSS();
+        std::stringstream &getSS();
         LogEvent::ptr getEvent() { return m_event; }
-        
-        private:
+
+    private:
         LogEvent::ptr m_event;
     };
 
-    
     // 日志格式
     class LogFormatter
     {
@@ -109,14 +112,15 @@ namespace relar
         // %t %thread_id %m%n
         std::string format(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event);
         void init();
+
     public:
         class FormatItem
         {
         public:
             typedef std::shared_ptr<FormatItem> ptr;
-            FormatItem(const std::string & fmt = ""){};
+            FormatItem(const std::string &fmt = ""){};
             virtual ~FormatItem() {}
-            virtual void format(std::ostream& os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
+            virtual void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
         };
 
     private:
@@ -132,8 +136,11 @@ namespace relar
 
         virtual void log(std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
 
-        void setFormatter(LogFormatter::ptr val){ m_formatter = val; }
+        void setFormatter(LogFormatter::ptr val) { m_formatter = val; }
         LogFormatter::ptr getFormatter() const { return m_formatter; }
+
+        LogLevel::Level getLevel() const { return m_level; }
+        void setLevel(LogLevel::Level level) { m_level = level; }
 
     protected:
         LogLevel::Level m_level;
@@ -157,12 +164,13 @@ namespace relar
         void delAppender(LogAppender::ptr appender);
         LogLevel::Level getLevel() const { return m_level; }
         void setLevel(LogLevel::Level val) { m_level = val; }
-        const std::string& getName() const { return m_name; }
+        const std::string &getName() const { return m_name; }
+
     private:
         std::string m_name;                      // 日志名称
         LogLevel::Level m_level;                 // 日志级别
         std::list<LogAppender::ptr> m_appenders; // appender集合
-        LogFormatter::ptr m_formatter; //
+        LogFormatter::ptr m_formatter;           //
     };
     // 定义输出到控制台的Appender
     class StdoutLogAppender : public LogAppender
@@ -184,6 +192,19 @@ namespace relar
     private:
         std::string m_filename;
         std::ofstream m_filestream;
+    };
+
+    class LoggerManager
+    {
+    public:
+        LoggerManager();
+        Logger::ptr getLogger(const std::string &name);
+
+        void init();
+
+    private:
+        std::map<std::string, Logger::ptr> m_loggers;
+        Logger::ptr m_root;
     };
 
 } // namespace relar

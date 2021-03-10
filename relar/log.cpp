@@ -439,4 +439,14 @@ namespace relar
         // %f -- 文件名
         // %l -- 行号
     }
+
+    LoggerManager::LoggerManager() { 
+        m_root.reset(new Logger);
+        m_root->addAppender(LogAppender::ptr(new StdoutLogAppender));
+    }
+
+    Logger::ptr LoggerManager::getLogger(const std::string& name){
+        auto it = m_loggers.begin();
+        return it;
+    }
 }
