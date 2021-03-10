@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -rdynamic -O0 -ggdb -std=c++11 -Wall -Wno-de
 
 set(LIB_SRC
     relar/log.cpp
+    relar/util.cpp
 )
 
 add_library(relar SHARED ${LIB_SRC})
