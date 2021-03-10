@@ -12,5 +12,6 @@ int main(int argc, char** argv){
     // logger->log(relar::LogLevel::DEBUG, event);
     std::cout << "hello relar log" << std::endl;
     RELAR_LOG_INFO(logger) << "test macro";
+    RELAR_LOG_ERROR(logger) << "test macro error";
     return 0;
 }

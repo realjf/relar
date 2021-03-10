@@ -26,8 +26,6 @@ namespace relar
         return "UNKNOW";
     }
 
-    LogEvent::~LogEvent() { }
-
     LogEventWrap::LogEventWrap(LogEvent::ptr e) : m_event(e) {
 
     }
@@ -411,7 +409,7 @@ namespace relar
                 }
             }
 
-            std::cout << "{" << std::get<0>(i) << "} - {" << std::get<1>(i) << "} - {" << std::get<2>(i) << "}" << std::endl;
+            // std::cout << "{" << std::get<0>(i) << "} - {" << std::get<1>(i) << "} - {" << std::get<2>(i) << "}" << std::endl;
         }
 
 

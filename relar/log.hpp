@@ -12,7 +12,7 @@
 #include <string>
 
 #define RELAR_LOG_LEVEL(logger, level) \
-    if(logger->getLevel() >= level) \
+    if(logger->getLevel() <= level) \
         relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
         relar::GetFiberId(), time(0))}).getSS()
 
@@ -46,7 +46,6 @@ namespace relar
     public:
         typedef std::shared_ptr<LogEvent> ptr;
         LogEvent(std::shared_ptr<Logger> logger, LogLevel::Level level, const char* file, int32_t line, uint32_t elapse, uint32_t thread_id, uint32_t fiber_id, uint64_t time);
-        ~LogEvent();
 
         const char* getFile() const { return m_file; }
         int32_t getLine() const { return m_line; }
@@ -59,6 +58,7 @@ namespace relar
         LogLevel::Level getLevel() const { return m_level; }
 
         std::stringstream& getSS() { return m_ss; }
+        void format(const char* fmt, ...);
     private:
         const char *m_file = nullptr; // 文件名
         int32_t m_line = 0;           // 行号
