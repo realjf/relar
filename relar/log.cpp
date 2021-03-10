@@ -32,7 +32,23 @@ namespace relar
 
     LogEventWrap::~LogEventWrap() {
         m_event->getLogger()->log(m_event->getLevel(), m_event);
-     }
+    }
+
+    void LogEvent::format(const char* fmt, ...) {
+        va_list al;
+        va_start(al, fmt);
+        format(fmt, al);
+        va_end(al);
+    }
+
+    void LogEvent::format(const char* fmt, va_list al) {
+        char* buf = nullptr;
+        int len = vasprintf(&buf, fmt, al);
+        if(len != -1){
+            m_ss << std::string(buf, len);
+            free(buf);
+        }
+    }
 
     std::stringstream& LogEventWrap::getSS() { return m_event->getSS(); }
     class MessageFormatItem : public LogFormatter::FormatItem

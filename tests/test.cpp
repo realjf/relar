@@ -13,5 +13,7 @@ int main(int argc, char** argv){
     std::cout << "hello relar log" << std::endl;
     RELAR_LOG_INFO(logger) << "test macro";
     RELAR_LOG_ERROR(logger) << "test macro error";
+
+    RELAR_LOG_FMT_ERROR(logger, "test macro fmt error %s", "aa");
     return 0;
 }

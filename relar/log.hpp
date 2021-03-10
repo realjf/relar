@@ -10,6 +10,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <stdarg.h>
 
 #define RELAR_LOG_LEVEL(logger, level) \
     if(logger->getLevel() <= level) \
@@ -21,6 +22,18 @@
 #define RELAR_LOG_WARN(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::WARN)
 #define RELAR_LOG_ERROR(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::ERROR)
 #define RELAR_LOG_FATAL(logger) RELAR_LOG_LEVEL(logger, relar::LogLevel::FATAL)
+
+#define RELAR_LOG_FMT_LEVEL(logger, level, fmt, ...) \
+    if(logger->getLevel() <= level) \
+        relar::LogEventWrap(relar::LogEvent::ptr{new relar::LogEvent(logger, level, __FILE__, __LINE__, 0, relar::GetThreadId(), \
+        relar::GetFiberId(), time(0))}).getEvent()->format(fmt, __VA_ARGS__)
+
+#define RELAR_LOG_FMT_DEBUG(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::DEBUG, fmt, __VA_ARGS__)
+#define RELAR_LOG_FMT_INFO(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::INFO, fmt, __VA_ARGS__)
+#define RELAR_LOG_FMT_WARN(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::WARN, fmt, __VA_ARGS__)
+#define RELAR_LOG_FMT_ERROR(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::ERROR, fmt, __VA_ARGS__)
+#define RELAR_LOG_FMT_FATAL(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::FATAL, fmt, __VA_ARGS__)
+
 
 namespace relar
 {
@@ -59,6 +72,7 @@ namespace relar
 
         std::stringstream& getSS() { return m_ss; }
         void format(const char* fmt, ...);
+        void format(const char* fmt, va_list al);
     private:
         const char *m_file = nullptr; // 文件名
         int32_t m_line = 0;           // 行号
@@ -78,6 +92,8 @@ namespace relar
         LogEventWrap(LogEvent::ptr e);
         ~LogEventWrap();
         std::stringstream& getSS();
+        LogEvent::ptr getEvent() { return m_event; }
+        
         private:
         LogEvent::ptr m_event;
     };
