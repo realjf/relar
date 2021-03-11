@@ -17,6 +17,8 @@ add_library(relar SHARED ${LIB_SRC})
 # addlibrary(sylar_static STATIC ${LIB_SRC})
 #SET_TARGET_PROPERTIES (relar_static PROPERTIES OUTPUT_NAME "relar")
 
+find_library(PTHREAD pthread)
+
 add_executable(test tests/test.cpp)
 add_dependencies(test relar)
 target_link_libraries(test relar)

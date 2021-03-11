@@ -1,5 +1,5 @@
-#include "relar/config.hpp"
-#include "relar/log.hpp"
+#include "../relar/config.hpp"
+#include "../relar/log.hpp"
 
 relar::ConfigVar<int>::ptr g_int_value_config = relar::Config::Lookup("system.port", (int)8080, "system port");
 

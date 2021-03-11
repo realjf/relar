@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
-#include "relar/log.hpp"
+#include "log.hpp"
 
 namespace relar
 {
@@ -92,6 +92,7 @@ namespace relar
 
             typename ConfigVar<T>::ptr v(new ConfigVar<T>(name, default_value, description));
             m_datas[name] = v;
+            return v;
         }
 
         template<class T>
