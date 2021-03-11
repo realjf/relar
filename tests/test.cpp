@@ -22,5 +22,8 @@ int main(int argc, char** argv){
     RELAR_LOG_ERROR(logger) << "test macro error";
 
     RELAR_LOG_FMT_ERROR(logger, "test macro fmt error %s", "aa");
+
+    auto l = relar::LoggerMgr::GetInstance()->getLogger("xx");
+    RELAR_LOG_INFO(l) << "xxx";
     return 0;
 }

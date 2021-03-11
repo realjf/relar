@@ -11,6 +11,7 @@
 #include <string>
 #include <stdarg.h>
 #include <map>
+#include "singleton.hpp"
 
 #define RELAR_LOG_LEVEL(logger, level)                                                                                       \
     if (logger->getLevel() <= level)                                                                                         \
@@ -206,6 +207,8 @@ namespace relar
         std::map<std::string, Logger::ptr> m_loggers;
         Logger::ptr m_root;
     };
+
+    typedef relar::Singleton<LoggerManager> LoggerMgr;
 
 } // namespace relar
 

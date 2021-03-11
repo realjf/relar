@@ -446,7 +446,7 @@ namespace relar
     }
 
     Logger::ptr LoggerManager::getLogger(const std::string& name){
-        auto it = m_loggers.begin();
-        return it;
+        auto it = m_loggers.find(name);
+        return it == m_loggers.end() ? m_root : it->second;
     }
 }
