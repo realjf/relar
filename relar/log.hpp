@@ -11,6 +11,7 @@
 #include <string>
 #include <stdarg.h>
 #include <map>
+#include "util.hpp"
 #include "singleton.hpp"
 
 #define RELAR_LOG_LEVEL(logger, level)                                                                                       \
@@ -38,6 +39,8 @@
 #define RELAR_LOG_FMT_ERROR(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::ERROR, fmt, __VA_ARGS__)
 #define RELAR_LOG_FMT_FATAL(logger, fmt, ...) RELAR_LOG_FMT_LEVEL(logger, relar::LogLevel::FATAL, fmt, __VA_ARGS__)
 
+
+#define RELAR_LOG_ROOT() relar::LoggerMgr::GetInstance()->getRoot()
 namespace relar
 {
     class Logger;
@@ -203,6 +206,7 @@ namespace relar
 
         void init();
 
+        Logger::ptr getRoot() const { return m_root; };
     private:
         std::map<std::string, Logger::ptr> m_loggers;
         Logger::ptr m_root;
